@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- arguments -->
+  <arg name="weights" default="yolov5s.pt"/>
+  <arg name="source_topic" default="/camera/color/image_raw"/>
+  <arg name="camera_topic" default="/camera/color/camera_info"/>
+  <arg name="depth_topic" default="/camera/aligned_depth_to_color/image_raw"/>
+  <arg name="depth_camera_topic" default="/camera/aligned_depth_to_color/camera_info"/>
+  
+  <arg name="imgsz" default="640"/>
+  <arg name="conf_thres" default="0.25"/>
+  <arg name="iou_thres" default="0.45"/>
+  <arg name="max_det" default="1000"/>
+  <arg name="device" default=""/>
+  
+  <arg name="view_img" default="False"/>
+  <arg name="save_conf" default="False"/>
+  <arg name="save_txt" default="False"/>
+  <arg name="save_crop" default="False"/>
+  <arg name="nosave" default="True"/>
+  
+  <arg name="classes" default=""/>
+  <arg name="agnostic_nms" default="Fals"/>
+  <arg name="augment" default="False"/>
+  <arg name="visualize" default="False"/>
+  <arg name="update" default="False"/>
+  
+  <arg name="project" default="yolov5_detect"/>
+  <arg name="name" default="exp"/>
+  <arg name="exist_ok" default="False"/>
+  <arg name="line_thickness" default="3"/>
+  <arg name="hide_labels" default="False"/>
+  
+  <arg name="hide_conf" default="False"/>
+  <arg name="half" default="False"/>
+  <arg name="detection_topic" default="/yolov5/detection"/>
+  <arg name="publish" default="False"/>
+  
+  
+  <!-- YOLOv5 node -->
+  <node pkg="yolov5_ros" type="detect_node.py" name="yolov5_node" output="screen">
+    <param name="weights" value="$(arg weights)" />
+    <param name="source_topic" value="$(arg source_topic)" />
+    <param name="camera_topic" value="$(arg camera_topic)" />
+    <param name="depth_topic" value="$(arg depth_topic)" />
+    <param name="depth_camera_topic" value="$(arg depth_camera_topic)" />
+    
+    <param name="imgsz" value="$(arg imgsz)"/>
+    <param name="conf_thres" value="$(arg conf_thres)"/>
+    <param name="iou_thres" value="$(arg iou_thres)"/>
+    <param name="max_det" value="$(arg max_det)"/>
+    <param name="device" value="$(arg device)"/>
+    
+    <param name="view_img" value="$(arg view_img)" />
+    <param name="save_conf" value="$(arg save_conf)" />
+    <param name="save_txt" value="$(arg save_txt)" />
+    <param name="save_crop" value="$(arg save_crop)" />
+    <param name="nosave" value="$(arg nosave)" />
+    
+    <param name="classes" value="$(arg classes)"/>
+    <param name="agnostic_nms" value="$(arg agnostic_nms)"/>
+    <param name="augment" value="$(arg augment)"/>
+    <param name="visualize" value="$(arg visualize)"/>
+    <param name="update" value="$(arg update)"/>
+    
+    <param name="project" value="$(arg project)" />
+    <param name="name" value="$(arg name)" />
+    <param name="exist_ok" value="$(arg exist_ok)" />
+    <param name="line_thickness" value="$(arg line_thickness)" />
+    <param name="hide_labels" value="$(arg hide_labels)" />
+    
+    <param name="hide_conf" value="$(arg hide_conf)" />
+    <param name="half" value="$(arg half)" />
+    <param name="detection_topic" value="$(arg detection_topic)" />
+    <param name="publish" value="$(arg publish)" />
+  </node>
+
+  
+</launch>
