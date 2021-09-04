@@ -208,11 +208,6 @@ class yolov5_node:
     
     @torch.no_grad()
     def detector_callback(self, rgb_data, depth_data):
-        
-        if(self.detection_count > 100):
-            rospy.loginfo("Stopping detection to avoid overloading")
-            exit()
-            return
 
         # first, convert the obtained Image data to a cv2-type format, which is just a numpy array.
         depth_data.encoding = "mono16"
