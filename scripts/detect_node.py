@@ -29,7 +29,7 @@ from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterb
 
 import rospy
 from sensor_msgs.msg import Image
-from yolov5_detector.msg import DetectionMsg, DetectionArray
+from yolov5_ros.msg import DetectionMsg, DetectionArray
 from cv_bridge import CvBridge, CvBridgeError
 import message_filters
 
