@@ -298,6 +298,7 @@ class yolov5_node:
                         if self.save_crop:
                             save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.names[c] / f'{p.stem}.jpg', BGR=True)
             if self.publish:
+                msg.segmented = False
                 print("Publishing message")
                 self.detection_publisher.publish(msg)
                 
