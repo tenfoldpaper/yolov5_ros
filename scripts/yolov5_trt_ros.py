@@ -181,6 +181,9 @@ class YoLov5TRT(object):
             )
             # Convert the resulting boxes to xywh format for sending it over ros
             for j in range(len(result_boxes)):
+                if(categories[int(result_classid[j])] not in target_categories):
+                    print("excluded: ", categories[int(result_classid[j])])
+                    continue
                 box = result_boxes[j]
                 xywh_box = self.xyxy2xywh(box)
                 output_box = [int(result_classid[j]), *xywh_box]
@@ -411,27 +414,33 @@ class YoLov5ROS:
         rospy.loginfo("Initialising yolov5ros_trt")
         self.yolov5_wrapper = yolov5_wrapper
         self.publish=publish
+        self.running_total = 0.
+        self.running_counter = 0
         self.save_img=save_img
         self.show_img=show_img
         self.img_subscriber = message_filters.Subscriber(rgb_topic, Image, queue_size=5, buff_size=2**24)
         self.depth_subscriber = message_filters.Subscriber(depth_topic, Image, queue_size=5, buff_size=2**24)
         #self.ts = message_filters.TimeSynchronizer([self.img_subscriber, self.depth_subscriber], 1)
-        self.ts = message_filters.ApproximateTimeSynchronizer([self.img_subscriber, self.depth_subscriber], queue_size=1, slop=0.1)
+        self.ts = message_filters.ApproximateTimeSynchronizer([self.img_subscriber, self.depth_subscriber], queue_size=1, slop=0.05)
         self.ts.registerCallback(self.detector_callback)
         self.detection_publisher = None
         if(self.publish):
             rospy.loginfo("Publish mode. initializing publisher.")
-            self.detection_publisher = rospy.Publisher(detection_topic, DetectionMsg, queue_size=5)
+            self.detection_publisher = rospy.Publisher(detection_topic, DetectionMsg, queue_size=1)
         rospy.loginfo("Initialised the image subscriber successfully!")
     
     def detector_callback(self, rgb_data, depth_data):
-        print("data received")
+        
+        msg = DetectionMsg()
+        msg.image_time = rgb_data.header.stamp
         depth_data.encoding = "mono16"
         test = inferThreadROS(self.yolov5_wrapper, rgb_data)
         test.start()
         test.join()
+        self.running_counter += 1
+        self.running_total += test.runtime
+        print('current average: {:.2f}ms over {} samples'.format(self.running_total * 1000/self.running_counter, self.running_counter))
         if(self.publish):
-            msg = DetectionMsg()
             msg.detection_count = len(test.result_boxes)
             msg.detection_array = []
             for i in range(0, msg.detection_count):
@@ -448,6 +457,7 @@ class inferThreadROS(threading.Thread):
         threading.Thread.__init__(self)
         self.yolov5_wrapper = yolov5_wrapper
         self.img_msg = img_msg
+        self.runtime = 0
         self.result_boxes = []
 
     def run(self):
@@ -460,6 +470,7 @@ class inferThreadROS(threading.Thread):
         #print('input->{}, time->{:.2f}ms, saving into output/'.format('whereareyou.jpg', use_time * 1000))
         print('input->{}, time->{:.2f}ms, '.format('ROS message', use_time * 1000))
         self.result_boxes = boxes
+        self.runtime = use_time
 
 class inferThread(threading.Thread):
     def __init__(self, yolov5_wrapper, image_path_batch):
@@ -513,6 +524,8 @@ if __name__ == "__main__":
             "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
             "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
             "hair drier", "toothbrush"]
+    # define the classes we want to include
+    target_categories = ["frisbee","sports ball","spoon","fork","cup","knife","apple","orange","mouse","toothbrush","carrot","bowl","cell phone","bottle","vase","remote","dining table","banana"]
 
     if os.path.exists('output/'):
         shutil.rmtree('output/')
